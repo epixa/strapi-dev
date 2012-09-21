@@ -6,6 +6,10 @@ return [
         'foo/:bar' => ['class' => 'Api\Resource\Foo', 'reqs' => ['bar' => '\d+']]
     ],
     'middleware' => [
-        'middleware/test', 'middleware/test2'
+        'middleware/body-parser'
+    ],
+    'encoders' => [
+        'application/x-www-form-urlencoded' => '\Strapi\BodyParser\Url',
+        'application/json' => '\Strapi\BodyParser\Json'
     ]
 ];

@@ -50,6 +50,7 @@ class Runtime
         /* @var $request \Strapi\Request */
         /* @var $response \Strapi\Response */
         $request = $this->load('request');
+        var_dump($request);die();
         $response = $this->load('router')->route($request);
         $response->send();
     }

@@ -8,6 +8,9 @@ if ($method = $request->env('REQUEST_METHOD')) {
 }
 
 if ($uri = $request->env('REQUEST_URI')) {
+    if (($pos = strpos($uri, '?')) !== false) {
+        $uri = substr($uri, 0, $pos);
+    }
     $request->uri($uri);
 }
 
@@ -18,10 +21,5 @@ if ($type = $request->env('HTTP_CONTENT_TYPE')) {
 if (in_array($request->method(), ['POST', 'PUT', 'OPTIONS'])) {
     $request->body(@file_get_contents('php://input'));
 }
-
-//$request->accept($request->env('HTTP_ACCEPT') ?: 'application/json');
-//$rawRequestData = @file_get_contents('php://input') ?: '';
-
-//var_dump($request);die();
 
 return $request;

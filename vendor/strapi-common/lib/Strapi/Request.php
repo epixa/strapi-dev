@@ -33,7 +33,7 @@ class Request
     /**
      * Sets or retrieves the request's message body
      *
-     * @param string $body
+     * @param null|string $body
      * @return null|string
      */
     public function body($body = null)
