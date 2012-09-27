@@ -8,8 +8,8 @@ return [
     'middleware' => [
         'middleware/body-parser'
     ],
-    'encoders' => [
-        'application/x-www-form-urlencoded' => '\Strapi\BodyParser\Url',
-        'application/json' => '\Strapi\BodyParser\Json'
+    'body_parsers' => [
+        'application/json' => '\Strapi\BodyParser\Json',
+        'application/x-www-form-urlencoded' => '\Strapi\BodyParser\Url'
     ]
 ];

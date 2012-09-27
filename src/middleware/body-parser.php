@@ -1,7 +1,8 @@
 <?php
-/* @var $this \Strapi\Runtime */
 
 return function($next) {
+    /* @var $this \Strapi\Runtime */
+    /* @var $request Strapi\Request */
     $request = $this->load('request');
 
     $method = $request->method();
@@ -21,14 +22,14 @@ return function($next) {
     }
 
     $body = $request->body();
-    if ($body !== null && isset($this->load('config')['encoders'][$type])) {
-        $encoder = $this->load('config')['encoders'][$type];
+    if ($body !== null && isset($this->load('config')['body_parsers'][$type])) {
+        $encoder = $this->load('config')['body_parsers'][$type];
         if (strpos($encoder, '\\') === 0) {
             $encoder = new $encoder();
         } else {
             $encoder = $this->load($encoder);
         }
-        $params = $encoder($request->body());
+        $params = call_user_func($encoder, $request->body());
         if (is_array($params)) {
             $request->params($params + $request->params());
         }

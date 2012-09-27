@@ -74,6 +74,23 @@ class Response
     protected $data = null;
     protected $status = 200;
     protected $headers = [];
+    protected $bodyParser;
+
+
+    /**
+     * Constructs an HTTP response
+     *
+     * @param callable $bodyParser
+     */
+    public function __construct(callable $bodyParser = null)
+    {
+        if ($bodyParser === null) {
+            $bodyParser = function($data){
+                return serialize($data);
+            };
+        }
+        $this->bodyParser = $bodyParser;
+    }
 
     /**
      * Sets or retrieves the data of the response
@@ -98,12 +115,13 @@ class Response
      *
      * @param string $name
      * @param string $value
+     * @param bool   $replace
      * @return null|string
      */
-    public function header($name, $value = null)
+    public function header($name, $value = null, $replace = true)
     {
         if ($value !== null) {
-            $this->headers[$name] = (string)$value;
+            $this->headers[$name] = [$value, $replace];
         }
         return isset($this->headers[$name]) ? $this->headers[$name] : null;
     }
@@ -123,23 +141,31 @@ class Response
     }
 
     /**
-     * Sends the current response
+     * Builds and returns raw response data
      *
-     * All headers are sent, and if a body exists, that is sent as well.
+     * The resulting array contains raw headers and the parsed body.
      *
-     * todo: legit content negotiation instead of hardcoded json_encode
+     * @return array
      */
-    public function send()
+    public function build()
     {
-        foreach ($this->headers as $name => $value) {
-            header($name . ': ' . $value);
-        }
-        $status = $this->status();
-        $prefix = strpos(PHP_SAPI, 'cgi') === 0 ? 'Status:' : 'HTTP/1.1';
-        $desc = isset(static::$statuses[$status]) ? static::$statuses[$status] : '';
-        header($prefix . ' ' . $status . ' ' . $desc, true, $status);
+        // we handle the body prior to headers so that the custom body parser
+        // can manipulate the response before headers are compiled
+        $body = '';
         if ($this->data !== null) {
-            echo json_encode($this->data);
+            $body = call_user_func($this->bodyParser, $this->data, $this);
         }
+
+        $headers = [];
+        foreach ($this->headers as $name => $header) {
+            $headers[] = [$name . ': ' . $header[0], $header[1]];
+        }
+
+        $status = $this->status();
+        $prefix = strpos(PHP_SAPI, 'cgi') !== false ? 'Status:' : 'HTTP/1.1';
+        $desc = isset(static::$statuses[$status]) ? static::$statuses[$status] : '';
+        $headers[] = [$prefix . ' ' . $status . ' ' . $desc, true];
+
+        return ['headers' => $headers, 'body' => $body];
     }
 }

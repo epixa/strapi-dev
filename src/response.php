@@ -1,3 +1,6 @@
 <?php
+/* @var $this Strapi\Runtime */
 
-return new Strapi\Response();
+$parser = $this->load('content-negotiation');
+
+return new Strapi\Response($parser);

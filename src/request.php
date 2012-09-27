@@ -18,6 +18,10 @@ if ($type = $request->env('HTTP_CONTENT_TYPE')) {
     $request->type($type);
 }
 
+if ($accept = $request->env('HTTP_ACCEPT')) {
+    $request->accept($accept);
+}
+
 if (in_array($request->method(), ['POST', 'PUT', 'OPTIONS'])) {
     $request->body(@file_get_contents('php://input'));
 }

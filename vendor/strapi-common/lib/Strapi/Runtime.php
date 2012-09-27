@@ -50,9 +50,12 @@ class Runtime
         /* @var $request \Strapi\Request */
         /* @var $response \Strapi\Response */
         $request = $this->load('request');
-        var_dump($request);die();
         $response = $this->load('router')->route($request);
-        $response->send();
+        $output = $response->build();
+        foreach ($output['headers'] as $header) {
+            header($header[0], $header[1]);
+        }
+        echo $output['body'];
     }
 
     /**
