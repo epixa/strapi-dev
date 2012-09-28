@@ -13,7 +13,6 @@ namespace Strapi;
 class Router
 {
     protected $routes = [];
-    protected $loader;
 
     /**
      * Constructs a basic router
@@ -35,12 +34,10 @@ class Router
      * @see \Strapi\Router::route()
      *
      * @param array    $routes
-     * @param callable $loader
      * @throws \LogicException If a route definition exists without a "class"
      */
-    public function __construct(array $routes, callable $loader)
+    public function __construct(array $routes)
     {
-        $this->loader = $loader;
         foreach ($routes as $scheme => $route) {
             if (!isset($route['class'])) {
                 throw new \LogicException('Route has no class: ' . $scheme);
@@ -101,7 +98,7 @@ class Router
      * the result is returned immediately.
      *
      * @param \Strapi\Request $request
-     * @return mixed
+     * @return null|array
      */
     public function route($request)
     {
@@ -114,9 +111,10 @@ class Router
                 continue;
             }
             if ($scheme === $uri || $this->match($segments, $route)) {
-                return call_user_func($this->loader, $route);
+                return $route;
             }
         }
+        return null;
     }
 
     /**

@@ -48,14 +48,16 @@ class Runtime
     public function __invoke()
     {
         /* @var $request \Strapi\Request */
-        /* @var $response \Strapi\Response */
         $request = $this->load('request');
-        $response = $this->load('router')->route($request);
-        $output = $response->build();
-        foreach ($output['headers'] as $header) {
-            header($header[0], $header[1]);
+
+        if ($route = $this->load('router')->route($request)) {
+            call_user_func($this->load('dispatcher'), $route);
+        } else {
+            /* @var $response \Strapi\Response */
+            $response = $this->load('response');
+            $response->status(404);
+            $response->body('Route not found: ' . $request->uri());
         }
-        echo $output['body'];
     }
 
     /**

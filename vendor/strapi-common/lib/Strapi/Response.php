@@ -71,47 +71,45 @@ class Response
         510 => 'Not Extended',
         511 => 'Network Authentication Required'
     ];
-    protected $data = null;
+    protected $body;
+    protected $headers;
     protected $status = 200;
-    protected $headers = [];
-    protected $bodyParser;
 
 
     /**
-     * Constructs an HTTP response
+     * Constructs a new http response
      *
-     * @param callable $bodyParser
+     * @params int   $status
+     * @params mixed $body
+     * @params array $headers
      */
-    public function __construct(callable $bodyParser = null)
+    public function __construct($status = 200, $body = null, array $headers = [])
     {
-        if ($bodyParser === null) {
-            $bodyParser = function($data){
-                return serialize($data);
-            };
-        }
-        $this->bodyParser = $bodyParser;
+        $this->status($status);
+        $this->body($body);
+        $this->headers($headers);
     }
 
     /**
-     * Sets or retrieves the data of the response
+     * Sets or retrieves the body of the response
      *
-     * Response data must ultimately be converted to a string before it is
+     * Response body must ultimately be converted to a string before it is
      * sent, but it is stored unserialized here for access and manipulation
      * prior to being sent.
      *
-     * @param mixed $data
+     * @param mixed $body
      * @return mixed
      */
-    public function data($data = null)
+    public function body($body = null)
     {
-        if ($data !== null) {
-            $this->data = $data;
+        if ($body !== null) {
+            $this->body = $body;
         }
-        return $this->data;
+        return $this->body;
     }
 
     /**
-     * Sets or retrieves a header value for this response
+     * Sets or retrieves a header for this response
      *
      * @param string $name
      * @param string $value
@@ -120,14 +118,40 @@ class Response
      */
     public function header($name, $value = null, $replace = true)
     {
+        $index = strtolower($name);
         if ($value !== null) {
-            $this->headers[$name] = [$value, $replace];
+            $prefix = $name . ':';
+            if (!$replace && isset($this->headers[$index])) {
+                $prefix = $this->headers[$index] . ',';
+            }
+            $this->headers[$index] = $prefix . ' ' . $value;
         }
-        return isset($this->headers[$name]) ? $this->headers[$name] : null;
+        return isset($this->headers[$index]) ? $this->headers[$index] : null;
+    }
+
+    /**
+     * Sets or retrieves the response's headers in bulk
+     *
+     * Setting headers via this method does not clear existing headers.
+     *
+     * @param array|null $headers
+     * @return array
+     */
+    public function headers(array $headers = null)
+    {
+        if ($headers !== null) {
+            foreach ($headers as $header) {
+                call_user_func_array([$this, 'header'], $header);
+            }
+        }
+        return $this->headers;
     }
 
     /**
      * Sets or retrieves the http status for this response
+     *
+     * Whenever the status is set/changed, the appropriate http status header
+     * is also set/changed.
      *
      * @param null|int $status
      * @return int
@@ -135,37 +159,11 @@ class Response
     public function status($status = null)
     {
         if ($status !== null) {
+            $prefix = strpos(PHP_SAPI, 'cgi') !== false ? 'Status:' : 'HTTP/1.1';
+            $desc = isset(static::$statuses[$status]) ? static::$statuses[$status] : '';
+            $this->headers['status'] = $prefix . ' ' . $status . ' ' . $desc;
             $this->status = $status;
         }
         return $this->status;
-    }
-
-    /**
-     * Builds and returns raw response data
-     *
-     * The resulting array contains raw headers and the parsed body.
-     *
-     * @return array
-     */
-    public function build()
-    {
-        // we handle the body prior to headers so that the custom body parser
-        // can manipulate the response before headers are compiled
-        $body = '';
-        if ($this->data !== null) {
-            $body = call_user_func($this->bodyParser, $this->data, $this);
-        }
-
-        $headers = [];
-        foreach ($this->headers as $name => $header) {
-            $headers[] = [$name . ': ' . $header[0], $header[1]];
-        }
-
-        $status = $this->status();
-        $prefix = strpos(PHP_SAPI, 'cgi') !== false ? 'Status:' : 'HTTP/1.1';
-        $desc = isset(static::$statuses[$status]) ? static::$statuses[$status] : '';
-        $headers[] = [$prefix . ' ' . $status . ' ' . $desc, true];
-
-        return ['headers' => $headers, 'body' => $body];
     }
 }
