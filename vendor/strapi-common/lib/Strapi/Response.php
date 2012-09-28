@@ -73,7 +73,7 @@ class Response
     ];
     protected $body;
     protected $headers;
-    protected $status = 200;
+    protected $status;
 
 
     /**
@@ -85,16 +85,14 @@ class Response
      */
     public function __construct($status = 200, $body = null, array $headers = [])
     {
-        $this->status($status);
-        $this->body($body);
-        $this->headers($headers);
+        $this->reset($status, $body, $headers);
     }
 
     /**
      * Sets or retrieves the body of the response
      *
      * Response body must ultimately be converted to a string before it is
-     * sent, but it is stored unserialized here for access and manipulation
+     * sent, but it can be stored unserialized here for access and manipulation
      * prior to being sent.
      *
      * @param mixed $body
@@ -140,8 +138,8 @@ class Response
     public function headers(array $headers = null)
     {
         if ($headers !== null) {
-            foreach ($headers as $header) {
-                call_user_func_array([$this, 'header'], $header);
+            foreach ($headers as $header => $value) {
+                call_user_func([$this, 'header'], $header, $value);
             }
         }
         return $this->headers;
@@ -165,5 +163,25 @@ class Response
             $this->status = $status;
         }
         return $this->status;
+    }
+
+    /**
+     * Resets the current response
+     *
+     * This can optionally set the status, body, and headers after reset.
+     *
+     * @param null|int $status
+     * @param mixed    $body
+     * @param array    $headers
+     */
+    public function reset($status = null, $body = null, array $headers = [])
+    {
+        $this->status = 200;
+        $this->body = null;
+        $this->headers = [];
+
+        $this->status($status);
+        $this->body($body);
+        $this->headers($headers);
     }
 }

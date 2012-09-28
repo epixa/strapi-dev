@@ -53,10 +53,7 @@ class Runtime
         if ($route = $this->load('router')->route($request)) {
             call_user_func($this->load('dispatcher'), $route);
         } else {
-            /* @var $response \Strapi\Response */
-            $response = $this->load('response');
-            $response->status(404);
-            $response->body('Route not found: ' . $request->uri());
+            throw new HttpErrorException('Route not found: ' . $request->uri(), 404);
         }
     }
 
