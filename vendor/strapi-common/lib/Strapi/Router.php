@@ -65,18 +65,20 @@ class Router
      *    - $this->add('POST /foo', 'Api\Resource\Foo');
      *    - $this->add('/bar/:id', 'Api\Resource\Bar', ['id' => '\d+']);
      *
-     * @param       $scheme
-     * @param       $class
+     * @param string $scheme
+     * @param string $class
      * @param array $requirements
+	 * @return array
      */
     public function add($scheme, $class, array $requirements = [])
     {
         $restrictTo = null;
-        $scheme = trim($scheme, ' /');
+        $scheme = trim($scheme, ' ');
         if (($pos = strpos($scheme, ' ')) !== false) {
             $restrictTo = explode('|', strtoupper(substr($scheme, 0, $pos)));
             $scheme = substr($scheme, $pos + 1);
         }
+		$scheme = trim($scheme, '/');
 
         $reqs = [];
         foreach ($requirements as $key => $regex) {
@@ -89,6 +91,8 @@ class Router
             'segments' => explode('/', $scheme),
             'reqs' => $reqs
         ];
+
+		return $this->routes[$scheme];
     }
 
     /**
@@ -124,7 +128,7 @@ class Router
      * @param array $route
      * @return bool
      */
-    public function match(array $segments, array $route)
+    protected function match(array $segments, array $route)
     {
         // if the route has no dynamic segments, then we can't compare it
         if (!isset($route['segments'])) {

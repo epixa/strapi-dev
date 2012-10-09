@@ -44,6 +44,8 @@ class Runtime
      *
      * This loads the request module, and passes it to the route() method of
      * the router module.  Finally, it sends the response.
+     *
+     * @return mixed
      */
     public function __invoke()
     {
@@ -51,7 +53,7 @@ class Runtime
         $request = $this->load('request');
 
         if ($route = $this->load('router')->route($request)) {
-            call_user_func($this->load('dispatcher'), $route);
+            return call_user_func($this->load('dispatcher'), $route);
         } else {
             throw new HttpErrorException('Route not found: ' . $request->uri(), 404);
         }
@@ -64,6 +66,8 @@ class Runtime
      * middleware component, and then execute the middleware chain. When all
      * of the other middleware has run successfully, the entire runtime gets
      * invoked, which ticks of the request routing and response sending.
+     *
+     * @return mixed
      */
     public function run()
     {
@@ -76,6 +80,6 @@ class Runtime
         }
         $middleware[] = $this;
 
-        call_user_func(current($middleware));
+        return call_user_func(current($middleware));
     }
 }

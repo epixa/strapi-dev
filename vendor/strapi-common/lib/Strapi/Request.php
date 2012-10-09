@@ -11,7 +11,7 @@ namespace Strapi;
  */
 class Request
 {
-    protected $accept = ['*/*' => 1];
+    protected $accept = ['*/*'];
     protected $body = null;
     protected $env = [];
     protected $method = 'GET';

@@ -68,14 +68,14 @@ trait ModuleLoader
         }
 
         $file = $name . '.php';
+        if (DIRECTORY_SEPARATOR != '/') {
+            // use the correct directory separator for the current OS
+            $file = str_replace('/', DIRECTORY_SEPARATOR, $file);
+        }
+
         if ($file[0] !== '/') {
             // not an absolute path, so assume relative to project root
             $file = $this->modulePath() . '/' . $file;
-        }
-
-        // use the correct directory separator for the current OS
-        if (DIRECTORY_SEPARATOR != '/') {
-            $file = str_replace('/', DIRECTORY_SEPARATOR, $file);
         }
 
         if (!file_exists($file)) {

@@ -176,12 +176,11 @@ class Response
      */
     public function reset($status = null, $body = null, array $headers = [])
     {
-        $this->status = 200;
         $this->body = null;
         $this->headers = [];
 
-        $this->status($status);
-        $this->body($body);
+		$this->status($status ?: 200);
+		$this->body($body);
         $this->headers($headers);
     }
 }

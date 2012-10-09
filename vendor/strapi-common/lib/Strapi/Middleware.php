@@ -31,9 +31,17 @@ class Middleware
      * Constructs a new middleware wrapper for the given callback
      *
      * @param callable $callback
+     * @throws \BadMethodCallException
+     * @throws \InvalidArgumentException
      */
-    public function __construct(callable $callback)
+    public function __construct($callback)
     {
+        if (!isset($callback)) {
+            throw new \BadMethodCallException('Middleware must have a callback');
+        }
+        if (!is_callable($callback)) {
+            throw new \InvalidArgumentException('Provided middleware callback is not callable');
+        }
         $this->callback = $callback;
     }
 
@@ -42,10 +50,14 @@ class Middleware
      *
      * @param callable|null $next
      * @return callable|null
+     * @throws \InvalidArgumentException
      */
     public function next($next = null)
     {
-        if (is_callable($next)) {
+        if ($next !== null) {
+            if (!is_callable($next)) {
+                throw new \InvalidArgumentException('Provided "next" middleware callback is not callable');
+            }
             $this->next = $next;
         }
         return $this->next;
@@ -62,6 +74,6 @@ class Middleware
      */
     public function __invoke()
     {
-        call_user_func($this->callback, $this->next() ?: function(){});
+        return call_user_func($this->callback, $this->next() ?: function(){});
     }
 }
